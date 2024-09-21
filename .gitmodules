@@ -1,0 +1,8 @@
+[submodule "neo"]
+	path = neo
+	url = https://github.com/Slava0135/neo
+	branch = vm-harness
+[submodule "neo-go"]
+	path = neo-go
+	url = https://github.com/Slava0135/neo-go
+	branch = vm-harness
