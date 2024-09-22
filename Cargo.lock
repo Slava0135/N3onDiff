@@ -498,6 +498,8 @@ name = "n3on-diff"
 version = "0.1.0"
 dependencies = [
  "libafl",
+ "libafl_bolts",
+ "serde",
  "serde_json",
 ]
 
