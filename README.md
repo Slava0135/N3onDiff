@@ -1,6 +1,6 @@
 # N3onDiff (NeonDiff)
 
-Differential fuzzing for Neo (N3) blockhain virtual machine based on LibAFL
+Differential fuzzing for Neo (N3) blockchain virtual machine based on LibAFL
 
 ## Status
 
