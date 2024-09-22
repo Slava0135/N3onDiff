@@ -2,7 +2,10 @@ use std::borrow::Cow;
 
 use libafl::{prelude::*, state::State};
 use libafl_bolts::{
-    current_nanos, rands::StdRand, tuples::{tuple_list, Handle, Handled, MatchNameRef}, Named
+    current_nanos,
+    rands::StdRand,
+    tuples::{tuple_list, Handle, Handled, MatchNameRef},
+    Named,
 };
 use serde::Deserialize;
 use serde_json::Value;
@@ -53,10 +56,10 @@ where
                 let neosharp_output: Output = serde_json::from_slice(&neosharp_output)
                     .expect("failed to read json output from 'neo-sharp'");
                 if neogo_output.status != neosharp_output.status {
-                    return Ok(true)
+                    return Ok(true);
                 }
                 if neogo_output.estack != neosharp_output.estack {
-                    return Ok(true)
+                    return Ok(true);
                 }
                 Ok(false)
             }
@@ -75,7 +78,7 @@ fn main() {
     let neogo_stdout_observer = StdOutObserver::new("neogo-stdout-observer");
     let neosharp_stdout_observer = StdOutObserver::new("neosharp-stdout-observer");
 
-    let mut objective = DiffStdOutObjective{
+    let mut objective = DiffStdOutObjective {
         neogo_stdout_observer: neogo_stdout_observer.handle(),
         neosharp_stdout_observer: neosharp_stdout_observer.handle(),
     };
@@ -96,7 +99,7 @@ fn main() {
         .build(tuple_list!(neosharp_stdout_observer))
         .unwrap();
 
-    let mut executor = DiffExecutor::new(neogo_executor, neosharp_executor, ()); 
+    let mut executor = DiffExecutor::new(neogo_executor, neosharp_executor, ());
 
     let mut state = StdState::new(
         StdRand::with_seed(current_nanos()),
@@ -117,14 +120,14 @@ fn main() {
     let scheduler = QueueScheduler::new();
     let mut fuzzer = StdFuzzer::new(scheduler, feedback, objective);
     let mut manager = NopEventManager::new();
-    
+
     let mut stages = tuple_list!(StdMutationalStage::new(NopMutator::new(
         MutationResult::Mutated
     )));
 
     let corpus_id = fuzzer
-       .fuzz_one(&mut stages, &mut executor, &mut state, &mut manager)
-       .unwrap();
+        .fuzz_one(&mut stages, &mut executor, &mut state, &mut manager)
+        .unwrap();
 
     println!("last corpus: {}", corpus_id.0)
 }
