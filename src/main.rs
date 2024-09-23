@@ -1,10 +1,13 @@
 mod feedback;
+mod input;
 mod objective;
 mod output;
 
 use std::path::PathBuf;
 
+use base64::prelude::*;
 use feedback::TypeStateFeedback;
+use input::ByteCodeInput;
 use libafl::prelude::*;
 use libafl_bolts::{
     current_nanos,
@@ -58,9 +61,9 @@ fn main() {
 
     state
         .corpus_mut()
-        .add(Testcase::new(BytesInput::from(
-            "DAxIZWxsbyB3b3JsZCE=".as_bytes().to_vec(),
-        )))
+        .add(Testcase::new(ByteCodeInput {
+            opcodes: BASE64_STANDARD.decode("DAxIZWxsbyB3b3JsZCE=").unwrap(),
+        }))
         .unwrap();
 
     let scheduler = QueueScheduler::new();
