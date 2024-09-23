@@ -69,11 +69,10 @@ fn main() {
     let scheduler = QueueScheduler::new();
     let mut fuzzer = StdFuzzer::new(scheduler, feedback, objective);
 
-    let mut stages = tuple_list!(StdMutationalStage::new(NopMutator::new(
-        MutationResult::Mutated
-    )));
+    let mutator = StdScheduledMutator::new(havoc_mutations());
+    let mut stages = tuple_list!(StdMutationalStage::new(mutator));
 
-    let corpus_id = fuzzer
+    fuzzer
         .fuzz_loop(&mut stages, &mut executor, &mut state, &mut manager)
         .unwrap();
 }
