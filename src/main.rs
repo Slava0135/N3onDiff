@@ -1,86 +1,19 @@
-use std::borrow::Cow;
+mod objective;
 
-use libafl::{prelude::*, state::State};
+use libafl::prelude::*;
 use libafl_bolts::{
     current_nanos,
     rands::StdRand,
-    tuples::{tuple_list, Handle, Handled, MatchNameRef},
-    Named,
+    tuples::{tuple_list, Handled},
 };
-use serde::Deserialize;
-use serde_json::Value;
-
-#[derive(Deserialize)]
-struct Output {
-    status: String,
-    errmsg: String,
-    estack: Value,
-}
-
-#[derive(Clone)]
-struct DiffStdOutObjective {
-    neogo_stdout_observer: Handle<StdOutObserver>,
-    neosharp_stdout_observer: Handle<StdOutObserver>,
-}
-
-impl<S> Feedback<S> for DiffStdOutObjective
-where
-    S: State,
-{
-    fn is_interesting<EM, OT>(
-        &mut self,
-        _state: &mut S,
-        _manager: &mut EM,
-        _input: &<S>::Input,
-        observers: &OT,
-        _exit_kind: &ExitKind,
-    ) -> Result<bool, Error>
-    where
-        EM: EventFirer<State = S>,
-        OT: ObserversTuple<S>,
-    {
-        let neogo_output = observers
-            .get(&self.neogo_stdout_observer)
-            .unwrap()
-            .stdout
-            .clone();
-        let neosharp_output = observers
-            .get(&self.neosharp_stdout_observer)
-            .unwrap()
-            .stdout
-            .clone();
-        match (neogo_output, neosharp_output) {
-            (Some(neogo_output), Some(neosharp_output)) => {
-                let neogo_output: Output = serde_json::from_slice(&neogo_output)
-                    .expect("failed to read json output from 'neo-go'");
-                let neosharp_output: Output = serde_json::from_slice(&neosharp_output)
-                    .expect("failed to read json output from 'neo-sharp'");
-                if neogo_output.status != neosharp_output.status {
-                    return Ok(true);
-                }
-                if neogo_output.estack != neosharp_output.estack {
-                    return Ok(true);
-                }
-                Ok(false)
-            }
-            _ => panic!("no output found"),
-        }
-    }
-}
-
-impl Named for DiffStdOutObjective {
-    fn name(&self) -> &Cow<'static, str> {
-        &Cow::Borrowed("DiffStdOutObjective")
-    }
-}
 
 fn main() {
     let neogo_stdout_observer = StdOutObserver::new("neogo-stdout-observer");
     let neosharp_stdout_observer = StdOutObserver::new("neosharp-stdout-observer");
 
-    let mut objective = DiffStdOutObjective {
-        neogo_stdout_observer: neogo_stdout_observer.handle(),
-        neosharp_stdout_observer: neosharp_stdout_observer.handle(),
+    let mut objective = objective::DiffStdOutObjective {
+        fst_stdout_observer: neogo_stdout_observer.handle(),
+        snd_stdout_observer: neosharp_stdout_observer.handle(),
     };
 
     let mut feedback = ();
