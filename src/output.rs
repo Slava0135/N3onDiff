@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Output {
     pub status: String,
     pub errmsg: String,
@@ -8,7 +8,7 @@ pub struct Output {
     pub estack: Vec<StackItem>,
 }
 
-#[derive(Deserialize, PartialEq)]
+#[derive(Deserialize, PartialEq, Debug)]
 pub struct StackItem {
     #[serde(rename = "type")]
     pub itype: String,

@@ -18,14 +18,14 @@ pub struct TypeStateFeedback {
 struct TypeState {
     opcode: u8,
     fst_type: String,
-    snd_type: String
+    snd_type: String,
 }
 
 impl TypeStateFeedback {
     pub fn new(stdout_observers: Vec<Handle<StdOutObserver>>) -> Self {
         Self {
             stdout_observers: stdout_observers,
-            states: HashSet::new()
+            states: HashSet::new(),
         }
     }
 }
@@ -57,28 +57,22 @@ where
                 .clone();
             let out = parse(&out);
             let ts = match &out.estack[..] {
-                [fst] => {
-                    TypeState {
-                        opcode: out.lastop,
-                        fst_type: fst.itype.clone(),
-                        snd_type: String::new(),
-                    }
+                [fst] => TypeState {
+                    opcode: out.lastop,
+                    fst_type: fst.itype.clone(),
+                    snd_type: String::new(),
                 },
-                [fst, snd] => {
-                    TypeState {
-                        opcode: out.lastop,
-                        fst_type: fst.itype.clone(),
-                        snd_type: snd.itype.clone(),
-                    }
+                [fst, snd] => TypeState {
+                    opcode: out.lastop,
+                    fst_type: fst.itype.clone(),
+                    snd_type: snd.itype.clone(),
                 },
-                [fst,  snd, ..] => {
-                    TypeState {
-                        opcode: out.lastop,
-                        fst_type: fst.itype.clone(),
-                        snd_type: snd.itype.clone(),
-                    }
+                [fst, snd, ..] => TypeState {
+                    opcode: out.lastop,
+                    fst_type: fst.itype.clone(),
+                    snd_type: snd.itype.clone(),
                 },
-                _ => continue
+                _ => continue,
             };
             if self.states.insert(ts) {
                 new_state_found = true;

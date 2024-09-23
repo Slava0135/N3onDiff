@@ -21,11 +21,15 @@ fn main() {
         snd_stdout_observer: neosharp_stdout_observer.handle(),
     };
 
-    let mut feedback = TypeStateFeedback::new(vec![neogo_stdout_observer.handle(), neosharp_stdout_observer.handle()]);
+    let mut feedback = TypeStateFeedback::new(vec![
+        neogo_stdout_observer.handle(),
+        neosharp_stdout_observer.handle(),
+    ]); // <-- you need this!!!
 
     let neogo_executor = CommandExecutor::builder()
         .program("./harness/neo-go")
         .arg_input_arg()
+        .arg("DUMMY")
         .stdout_observer(neogo_stdout_observer.handle())
         .build(tuple_list!(neogo_stdout_observer))
         .unwrap();
@@ -33,6 +37,7 @@ fn main() {
     let neosharp_executor = CommandExecutor::builder()
         .program("./harness/neo-sharp")
         .arg_input_arg()
+        .arg("DUMMY")
         .stdout_observer(neosharp_stdout_observer.handle())
         .build(tuple_list!(neosharp_stdout_observer))
         .unwrap();
