@@ -55,28 +55,32 @@ where
                 .as_ref()
                 .expect("no output found (first)")
                 .clone();
-            let out = parse(&out);
-            let ts = match &out.estack[..] {
-                [fst] => TypeState {
-                    opcode: out.lastop,
-                    fst_type: fst.itype.clone(),
-                    snd_type: String::new(),
-                },
-                [fst, snd] => TypeState {
-                    opcode: out.lastop,
-                    fst_type: fst.itype.clone(),
-                    snd_type: snd.itype.clone(),
-                },
-                [fst, snd, ..] => TypeState {
-                    opcode: out.lastop,
-                    fst_type: fst.itype.clone(),
-                    snd_type: snd.itype.clone(),
-                },
-                _ => continue,
+            match parse(&out) {
+                Some(out) => {
+                    let ts = match &out.estack[..] {
+                        [fst] => TypeState {
+                            opcode: out.lastop,
+                            fst_type: fst.itype.clone(),
+                            snd_type: String::new(),
+                        },
+                        [fst, snd] => TypeState {
+                            opcode: out.lastop,
+                            fst_type: fst.itype.clone(),
+                            snd_type: snd.itype.clone(),
+                        },
+                        [fst, snd, ..] => TypeState {
+                            opcode: out.lastop,
+                            fst_type: fst.itype.clone(),
+                            snd_type: snd.itype.clone(),
+                        },
+                        _ => continue,
+                    };
+                    if self.states.insert(ts) {
+                        new_state_found = true;
+                    }
+                }
+                _ => {}
             };
-            if self.states.insert(ts) {
-                new_state_found = true;
-            }
         }
         Ok(new_state_found)
     }

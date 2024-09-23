@@ -17,9 +17,6 @@ pub struct StackItem {
     pub ivalue: Value,
 }
 
-pub fn parse(data: &Vec<u8>) -> Output {
-    serde_json::from_slice(&data).expect(&format!(
-        "failed to read json: {}",
-        String::from_utf8(data.clone()).unwrap()
-    ))
+pub fn parse(data: &Vec<u8>) -> Option<Output> {
+    serde_json::from_slice(&data).ok()
 }

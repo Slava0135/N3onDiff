@@ -44,15 +44,13 @@ where
             .as_ref()
             .expect("no output found (second)")
             .clone();
-        let fst_out = parse(&fst_out);
-        let snd_out = parse(&snd_out);
-        if fst_out.status != snd_out.status {
-            return Ok(true);
+        match (parse(&fst_out), parse(&snd_out)) {
+            (Some(fst_out), Some(snd_out)) => {
+                Ok(fst_out.status != snd_out.status || fst_out.estack != snd_out.estack)
+            }
+            (None, None) => Ok(false),
+            _ => Ok(true),
         }
-        if fst_out.estack != snd_out.estack {
-            return Ok(true);
-        }
-        Ok(false)
     }
 }
 
