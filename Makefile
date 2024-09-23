@@ -1,6 +1,6 @@
 build: create-harness build-neo-go build-neo-sharp
 
-create-harness: harness
+create-harness:
 	@mkdir -p harness
 
 build-neo-go:
