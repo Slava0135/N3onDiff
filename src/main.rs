@@ -1,5 +1,7 @@
 mod objective;
 
+use std::path::PathBuf;
+
 use libafl::prelude::*;
 use libafl_bolts::{
     current_nanos,
@@ -37,11 +39,14 @@ fn main() {
     let mut state = StdState::new(
         StdRand::with_seed(current_nanos()),
         InMemoryCorpus::new(),
-        InMemoryCorpus::new(),
+        OnDiskCorpus::new(PathBuf::from("./crashes")).unwrap(),
         &mut feedback,
         &mut objective,
     )
     .unwrap();
+
+    let monitor = SimpleMonitor::new(|s| println!("{s}"));
+    let mut manager = SimpleEventManager::new(monitor);
 
     state
         .corpus_mut()
@@ -52,15 +57,12 @@ fn main() {
 
     let scheduler = QueueScheduler::new();
     let mut fuzzer = StdFuzzer::new(scheduler, feedback, objective);
-    let mut manager = NopEventManager::new();
 
     let mut stages = tuple_list!(StdMutationalStage::new(NopMutator::new(
         MutationResult::Mutated
     )));
 
     let corpus_id = fuzzer
-        .fuzz_one(&mut stages, &mut executor, &mut state, &mut manager)
+        .fuzz_loop(&mut stages, &mut executor, &mut state, &mut manager)
         .unwrap();
-
-    println!("last corpus: {}", corpus_id.0)
 }
