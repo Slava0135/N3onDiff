@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use serde_json::Value;
 
 #[derive(Deserialize, Debug)]
 pub struct Output {
@@ -13,7 +14,7 @@ pub struct StackItem {
     #[serde(rename = "type")]
     pub itype: String,
     #[serde(rename = "value")]
-    pub ivalue: String,
+    pub ivalue: Value,
 }
 
 pub fn parse(data: &Vec<u8>) -> Output {
