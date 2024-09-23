@@ -5,16 +5,8 @@ use libafl_bolts::{
     tuples::{Handle, MatchNameRef},
     Named,
 };
-use serde::Deserialize;
-use serde_json::Value;
 
-#[derive(Deserialize)]
-struct Output {
-    status: String,
-    errmsg: String,
-    lastop: u8,
-    estack: Value,
-}
+use crate::output::parse;
 
 #[derive(Clone)]
 pub struct DiffStdOutObjective {
@@ -42,32 +34,25 @@ where
             .get(&self.fst_stdout_observer)
             .unwrap()
             .stdout
+            .as_ref()
+            .expect("no output found (first)")
             .clone();
         let snd_out = observers
             .get(&self.snd_stdout_observer)
             .unwrap()
             .stdout
+            .as_ref()
+            .expect("no output found (second)")
             .clone();
-        match (fst_out, snd_out) {
-            (Some(fst_out), Some(snd_out)) => {
-                let fst_out: Output = serde_json::from_slice(&fst_out).expect(&format!(
-                    "failed to read json output from stdout (first): {}",
-                    String::from_utf8(fst_out).unwrap()
-                ));
-                let snd_out: Output = serde_json::from_slice(&snd_out).expect(&format!(
-                    "failed to read json output from stdout (second): {}",
-                    String::from_utf8(snd_out).unwrap()
-                ));
-                if fst_out.status != snd_out.status {
-                    return Ok(true);
-                }
-                if fst_out.estack != snd_out.estack {
-                    return Ok(true);
-                }
-                Ok(false)
-            }
-            _ => panic!("no output found"),
+        let fst_out = parse(&fst_out);
+        let snd_out = parse(&snd_out);
+        if fst_out.status != snd_out.status {
+            return Ok(true);
         }
+        if fst_out.estack != snd_out.estack {
+            return Ok(true);
+        }
+        Ok(false)
     }
 }
 

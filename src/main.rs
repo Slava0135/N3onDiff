@@ -1,7 +1,10 @@
+mod feedback;
 mod objective;
+mod output;
 
 use std::path::PathBuf;
 
+use feedback::TypeStateFeedback;
 use libafl::prelude::*;
 use libafl_bolts::{
     current_nanos,
@@ -18,7 +21,7 @@ fn main() {
         snd_stdout_observer: neosharp_stdout_observer.handle(),
     };
 
-    let mut feedback = ();
+    let mut feedback = TypeStateFeedback::new(vec![neogo_stdout_observer.handle(), neosharp_stdout_observer.handle()]);
 
     let neogo_executor = CommandExecutor::builder()
         .program("./harness/neo-go")
