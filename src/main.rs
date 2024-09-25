@@ -72,7 +72,7 @@ fn main() {
     let mutator = StdScheduledMutator::new(havoc_mutations());
     let mut stages = tuple_list!(StdMutationalStage::new(mutator));
 
-    fuzzer
-        .fuzz_loop(&mut stages, &mut executor, &mut state, &mut manager)
-        .unwrap();
+    loop {
+        println!("{:?}", fuzzer.fuzz_loop(&mut stages, &mut executor, &mut state, &mut manager))
+    }
 }
