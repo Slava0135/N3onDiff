@@ -6,7 +6,7 @@ use libafl_bolts::{
     Named,
 };
 
-use crate::output::{parse, StackItem};
+use crate::output::parse;
 
 #[derive(Clone)]
 pub struct TypeStateFeedback {

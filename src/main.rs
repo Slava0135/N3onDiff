@@ -27,7 +27,7 @@ fn main() {
     let mut feedback = TypeStateFeedback::new(vec![
         neogo_stdout_observer.handle(),
         neosharp_stdout_observer.handle(),
-    ]); // <-- you need this!!!
+    ]);
 
     let neogo_executor = CommandExecutor::builder()
         .program("./harness/neo-go")
@@ -73,6 +73,9 @@ fn main() {
     let mut stages = tuple_list!(StdMutationalStage::new(mutator));
 
     loop {
-        println!("{:?}", fuzzer.fuzz_loop(&mut stages, &mut executor, &mut state, &mut manager))
+        println!(
+            "{:?}",
+            fuzzer.fuzz_loop(&mut stages, &mut executor, &mut state, &mut manager)
+        )
     }
 }

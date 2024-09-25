@@ -46,7 +46,14 @@ where
             .clone();
         match (parse(&fst_out), parse(&snd_out)) {
             (Some(fst_out), Some(snd_out)) => {
-                Ok(fst_out.status != snd_out.status || fst_out.estack != snd_out.estack)
+                if fst_out.status != snd_out.status {
+                    Ok(true)
+                } else {
+                    match fst_out.status.as_str() {
+                        "VM halted" => Ok(fst_out.estack != snd_out.estack),
+                        _ => Ok(false),
+                    }
+                }
             }
             (None, None) => Ok(false),
             _ => Ok(true),
