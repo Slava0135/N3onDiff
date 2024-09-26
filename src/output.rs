@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Output {
     pub status: String,
     pub errmsg: String,
@@ -9,7 +9,7 @@ pub struct Output {
     pub estack: Vec<StackItem>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct StackItem {
     #[serde(rename = "type")]
     pub itype: String,

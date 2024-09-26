@@ -19,10 +19,10 @@ fn main() {
     let neogo_stdout_observer = StdOutObserver::new("neogo-stdout-observer");
     let neosharp_stdout_observer = StdOutObserver::new("neosharp-stdout-observer");
 
-    let mut objective = objective::DiffStdOutObjective {
-        fst_stdout_observer: neogo_stdout_observer.handle(),
-        snd_stdout_observer: neosharp_stdout_observer.handle(),
-    };
+    let mut objective = objective::DiffStdOutObjective::new(
+        neogo_stdout_observer.handle(),
+        neosharp_stdout_observer.handle(),
+    );
 
     let mut feedback = TypeStateFeedback::new(vec![
         neogo_stdout_observer.handle(),
