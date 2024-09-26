@@ -59,6 +59,6 @@ impl HasLen for ByteCodeInput {
 
 impl Input for ByteCodeInput {
     fn generate_name(&self, _: Option<libafl::prelude::CorpusId>) -> String {
-        BASE64_STANDARD.encode(&self.opcodes)
+        BASE64_URL_SAFE.encode(&self.opcodes)
     }
 }
