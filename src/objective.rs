@@ -32,6 +32,7 @@ impl DiffStdOutObjective {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 struct DiffStdOutMetadata {
+    base64: Option<String>,
     fst: Option<Output>,
     snd: Option<Output>,
     cause: Option<String>,
@@ -47,7 +48,7 @@ where
         &mut self,
         _state: &mut S,
         _manager: &mut EM,
-        _input: &<S>::Input,
+        input: &<S>::Input,
         observers: &OT,
         _exit_kind: &ExitKind,
     ) -> Result<bool, Error>
@@ -74,6 +75,7 @@ where
             (Some(fst_out), Some(snd_out)) => {
                 if fst_out.status != snd_out.status {
                     self.diff_std_out_metadata = DiffStdOutMetadata {
+                        base64: Some(input.generate_name(None)),
                         fst: Some(fst_out),
                         snd: Some(snd_out),
                         cause: Some(String::from("different status")),
@@ -84,6 +86,7 @@ where
                         "VM halted" => {
                             if fst_out.estack != snd_out.estack {
                                 self.diff_std_out_metadata = DiffStdOutMetadata {
+                                    base64: Some(input.generate_name(None)),
                                     fst: Some(fst_out),
                                     snd: Some(snd_out),
                                     cause: Some(String::from("different stack")),
