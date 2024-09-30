@@ -1,10 +1,4 @@
-use std::{
-    borrow::Cow,
-    collections::HashSet,
-    fs::read_to_string,
-    path::Path,
-    process::Command,
-};
+use std::{borrow::Cow, collections::HashSet, fs::read_to_string, path::Path, process::Command};
 
 use libafl::{inputs::UsesInput, prelude::Observer};
 use libafl_bolts::Named;
@@ -12,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GoCoverObserver {
-    coverage: HashSet<String>,
+    pub coverage: HashSet<String>,
     cover_dir: Box<Path>,
     profile_path: Box<Path>,
 }
@@ -72,10 +66,11 @@ where
             if line.starts_with("mode") {
                 continue;
             }
-            let (name, info) = line.split_once(':').unwrap();
-            let count: i32 = info.split(' ').last().unwrap().parse().unwrap();
+            let data: Vec<_> = line.split(' ').collect();
+            let location = data[0];
+            let count: i32 = data[2].parse().unwrap();
             if count != 0 {
-                self.coverage.insert(String::from(name));
+                self.coverage.insert(String::from(location));
             }
         }
         Ok(())

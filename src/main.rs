@@ -7,7 +7,7 @@ mod output;
 use std::{env, path::PathBuf};
 
 use base64::prelude::*;
-use feedback::type_state::TypeStateFeedback;
+use feedback::{go_cover::GoCoverFeedback, type_state::TypeStateFeedback};
 use input::ByteCodeInput;
 use libafl::prelude::*;
 use libafl_bolts::{
@@ -32,10 +32,13 @@ fn main() {
     std::fs::create_dir(go_cover_path.as_path()).unwrap_or(());
     let go_cover_observer = GoCoverObserver::new(go_cover_path.into_boxed_path());
 
-    let mut feedback = TypeStateFeedback::new(vec![
-        neogo_stdout_observer.handle(),
-        neosharp_stdout_observer.handle(),
-    ]);
+    let mut feedback = feedback_or!(
+        TypeStateFeedback::new(vec![
+            neogo_stdout_observer.handle(),
+            neosharp_stdout_observer.handle(),
+        ]),
+        GoCoverFeedback::new(go_cover_observer.handle())
+    );
 
     let neogo_executor = CommandExecutor::builder()
         .program("./harness/neo-go")
