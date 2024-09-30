@@ -80,7 +80,7 @@ where
                         snd: Some(snd_out),
                         cause: Some(String::from("different status")),
                     };
-                    Ok(true)
+                    Ok(false) // TODO: make optional
                 } else {
                     match fst_out.status.as_str() {
                         "VM halted" => {
