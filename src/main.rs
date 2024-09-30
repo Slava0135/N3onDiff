@@ -1,12 +1,13 @@
 mod feedback;
 mod input;
 mod objective;
+mod observer;
 mod output;
 
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 
 use base64::prelude::*;
-use feedback::TypeStateFeedback;
+use feedback::type_state::TypeStateFeedback;
 use input::ByteCodeInput;
 use libafl::prelude::*;
 use libafl_bolts::{
@@ -14,6 +15,7 @@ use libafl_bolts::{
     rands::StdRand,
     tuples::{tuple_list, Handled},
 };
+use observer::GoCoverObserver;
 
 fn main() {
     let neogo_stdout_observer = StdOutObserver::new("neogo-stdout-observer");
@@ -24,6 +26,12 @@ fn main() {
         neosharp_stdout_observer.handle(),
     );
 
+    let go_cover_dir = "go-cover";
+    let mut go_cover_path = env::current_dir().unwrap();
+    go_cover_path.push(go_cover_dir);
+    std::fs::create_dir(go_cover_path.as_path()).unwrap_or(());
+    let go_cover_observer = GoCoverObserver::new(go_cover_path.into_boxed_path());
+
     let mut feedback = TypeStateFeedback::new(vec![
         neogo_stdout_observer.handle(),
         neosharp_stdout_observer.handle(),
@@ -31,10 +39,11 @@ fn main() {
 
     let neogo_executor = CommandExecutor::builder()
         .program("./harness/neo-go")
+        .env("GOCOVERDIR", go_cover_dir)
         .arg_input_arg()
         .arg("DUMMY")
         .stdout_observer(neogo_stdout_observer.handle())
-        .build(tuple_list!(neogo_stdout_observer))
+        .build(tuple_list!(neogo_stdout_observer, go_cover_observer))
         .unwrap();
 
     let neosharp_executor = CommandExecutor::builder()
