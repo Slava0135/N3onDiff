@@ -4,7 +4,7 @@ mod objective;
 mod observer;
 mod output;
 
-use std::{env, path::PathBuf};
+use std::{env, fs::read_to_string, path::PathBuf};
 
 use base64::prelude::*;
 use feedback::{go_cover::GoCoverFeedback, type_state::TypeStateFeedback};
@@ -71,12 +71,17 @@ fn main() {
     let monitor = SimpleMonitor::new(|s| println!("{s}"));
     let mut manager = SimpleEventManager::new(monitor);
 
-    state
-        .corpus_mut()
-        .add(Testcase::new(ByteCodeInput {
-            opcodes: BASE64_STANDARD.decode("DAxIZWxsbyB3b3JsZCE=").unwrap(),
-        }))
-        .unwrap();
+    let corpus = state.corpus_mut();
+
+    corpus.add(Testcase::new(ByteCodeInput {
+        opcodes: BASE64_STANDARD.decode("DAxIZWxsbyB3b3JsZCE=").unwrap(),
+    })).unwrap();
+
+    for line in read_to_string("./corpus/corpus.txt").unwrap().lines() {
+        corpus.add(Testcase::new(ByteCodeInput {
+            opcodes: BASE64_STANDARD.decode(line).unwrap(),
+        })).unwrap();
+    }
 
     let scheduler = QueueScheduler::new();
     let mut fuzzer = StdFuzzer::new(scheduler, feedback, objective);
