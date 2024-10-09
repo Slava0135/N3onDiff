@@ -10,5 +10,5 @@ build-neo-go:
 
 build-neo-sharp:
 	@echo '=> Building NeoSharp...'
-	@cd neo/VmHarness && dotnet publish -c release -o bin/harness
+	@cd neo/VmHarness && dotnet publish -c Release -o bin/harness
 	@cp neo/VmHarness/bin/harness/VmHarness harness/neo-sharp
