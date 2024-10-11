@@ -4,7 +4,7 @@ mod objective;
 mod observer;
 mod output;
 
-use std::{env, fs::read_to_string, path::PathBuf};
+use std::{env, path::PathBuf};
 
 use base64::prelude::*;
 use feedback::{go_cover::GoCoverFeedback, type_state::TypeStateFeedback};
@@ -26,11 +26,12 @@ fn main() {
         neosharp_stdout_observer.handle(),
     );
 
-    let go_cover_dir = "go-cover";
-    let mut go_cover_path = env::current_dir().unwrap();
-    go_cover_path.push(go_cover_dir);
-    std::fs::create_dir(go_cover_path.as_path()).unwrap_or(());
-    let go_cover_observer = GoCoverObserver::new(go_cover_path.into_boxed_path());
+    let temp_dir = env::temp_dir().join("N3onDiff");
+    std::fs::create_dir(temp_dir.as_path()).unwrap_or(());
+
+    let go_cover_dir = temp_dir.join("go-cover");
+    std::fs::create_dir(go_cover_dir.as_path()).unwrap_or(());
+    let go_cover_observer = GoCoverObserver::new(go_cover_dir.clone().into_boxed_path());
 
     let mut feedback = feedback_or!(
         TypeStateFeedback::new(vec![
@@ -42,7 +43,7 @@ fn main() {
 
     let neogo_executor = CommandExecutor::builder()
         .program("./harness/neo-go")
-        .env("GOCOVERDIR", go_cover_dir)
+        .env("GOCOVERDIR", go_cover_dir.as_path())
         .arg_input_arg()
         .arg("DUMMY")
         .stdout_observer(neogo_stdout_observer.handle())
