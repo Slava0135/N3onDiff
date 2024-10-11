@@ -7,6 +7,7 @@ mod output;
 use std::{env, path::PathBuf};
 
 use base64::prelude::*;
+use clap::Parser;
 use feedback::{go_cover::GoCoverFeedback, type_state::TypeStateFeedback};
 use input::ByteCodeInput;
 use libafl::prelude::*;
@@ -17,13 +18,29 @@ use libafl_bolts::{
 };
 use observer::GoCoverObserver;
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(
+        short,
+        long,
+        help = "Report error if VMs exit with different status. Can result in many false positives!",
+        name = "DETECT_STATUS_DIFFERENCE",
+        default_value_t = false,
+    )]
+    detect_status_diff: bool,
+}
+
 fn main() {
+    let args = Args::parse();
+
     let neogo_stdout_observer = StdOutObserver::new("neogo-stdout-observer");
     let neosharp_stdout_observer = StdOutObserver::new("neosharp-stdout-observer");
 
     let mut objective = objective::DiffStdOutObjective::new(
         neogo_stdout_observer.handle(),
         neosharp_stdout_observer.handle(),
+        args.detect_status_diff,
     );
 
     let temp_dir = env::temp_dir().join("N3onDiff");
@@ -74,9 +91,11 @@ fn main() {
 
     let corpus = state.corpus_mut();
 
-    corpus.add(Testcase::new(ByteCodeInput {
-        opcodes: BASE64_STANDARD.decode("DAxIZWxsbyB3b3JsZCE=").unwrap(),
-    })).unwrap();
+    corpus
+        .add(Testcase::new(ByteCodeInput {
+            opcodes: BASE64_STANDARD.decode("DAxIZWxsbyB3b3JsZCE=").unwrap(),
+        }))
+        .unwrap();
 
     let scheduler = QueueScheduler::new();
     let mut fuzzer = StdFuzzer::new(scheduler, feedback, objective);

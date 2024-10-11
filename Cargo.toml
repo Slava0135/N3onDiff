@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 base64 = "0.22.1"
+clap = { version = "4.5.5", features = ["derive"] }
 libafl = "0.13.2"
 libafl_bolts = "0.13.2"
 serde = "1.0.210"

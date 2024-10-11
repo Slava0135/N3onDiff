@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 
-use base64::{prelude::{BASE64_STANDARD, BASE64_URL_SAFE}, Engine};
+use base64::{
+    prelude::{BASE64_STANDARD, BASE64_URL_SAFE},
+    Engine,
+};
 use libafl::{prelude::*, state::State};
 use libafl_bolts::{
     impl_serdeany,
@@ -9,24 +12,27 @@ use libafl_bolts::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{input::ByteCodeInput, output::{parse, Output}};
+use crate::output::{parse, Output};
 
 #[derive(Clone)]
 pub struct DiffStdOutObjective {
     pub fst_stdout_observer: Handle<StdOutObserver>,
     pub snd_stdout_observer: Handle<StdOutObserver>,
     diff_std_out_metadata: DiffStdOutMetadata,
+    detect_status_diff: bool,
 }
 
 impl DiffStdOutObjective {
     pub fn new(
         fst_stdout_observer: Handle<StdOutObserver>,
         snd_stdout_observer: Handle<StdOutObserver>,
+        detect_status_diff: bool,
     ) -> DiffStdOutObjective {
         DiffStdOutObjective {
             fst_stdout_observer: fst_stdout_observer,
             snd_stdout_observer: snd_stdout_observer,
             diff_std_out_metadata: DiffStdOutMetadata::default(),
+            detect_status_diff: detect_status_diff,
         }
     }
 }
@@ -81,7 +87,7 @@ where
                         snd: Some(snd_out),
                         cause: Some(String::from("different status")),
                     };
-                    Ok(false) // TODO: make optional
+                    Ok(self.detect_status_diff)
                 } else {
                     match fst_out.status.as_str() {
                         "VM halted" => {
