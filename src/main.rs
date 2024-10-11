@@ -77,12 +77,6 @@ fn main() {
         opcodes: BASE64_STANDARD.decode("DAxIZWxsbyB3b3JsZCE=").unwrap(),
     })).unwrap();
 
-    for line in read_to_string("./corpus/corpus.txt").unwrap().lines() {
-        corpus.add(Testcase::new(ByteCodeInput {
-            opcodes: BASE64_STANDARD.decode(line).unwrap(),
-        })).unwrap();
-    }
-
     let scheduler = QueueScheduler::new();
     let mut fuzzer = StdFuzzer::new(scheduler, feedback, objective);
 
