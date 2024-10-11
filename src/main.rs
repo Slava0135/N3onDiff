@@ -31,7 +31,7 @@ struct Args {
     #[arg(
         short = 'p',
         long,
-        help = "Choose the broker TCP port, default is 1337",
+        help = "Choose the broker TCP port",
         name = "PORT",
         default_value = "7777"
     )]
