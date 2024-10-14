@@ -39,11 +39,13 @@ Instead, find `*.metadata` files, where outputs for both VMs are saved and encod
 
 ## Issues Found
 
-In case you found new VM bugs using this fuzzer, __please__ make an issue and add the link here!
+In case you find new VM bugs using this fuzzer, __please__ make an issue and add the link here!
 
-- [MODMUL operation returns wrong results for negative numbers](https://github.com/nspcc-dev/neo-go/issues/3598)
-- [MODPOW operation returns wrong results when base is negative](https://github.com/nspcc-dev/neo-go/issues/3612)
-- [PACKMAP operation keeps duplicate entries](https://github.com/nspcc-dev/neo-go/issues/3613)
+| Name                                                         | Description                          | Link                                                    |
+| ------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------- |
+| MODMUL operation returns wrong results for negative numbers | [Description](./bugs/neo-go-3598.md) | [Link](https://github.com/nspcc-dev/neo-go/issues/3598) |
+| MODPOW operation returns wrong results when base is negative | [Description](./bugs/neo-go-3612.md) | [Link](https://github.com/nspcc-dev/neo-go/issues/3612) |
+| PACKMAP operation keeps duplicate entries | [Description](./bugs/neo-go-3613.md) | [Link](https://github.com/nspcc-dev/neo-go/issues/3613) |
 
 ## License
 
