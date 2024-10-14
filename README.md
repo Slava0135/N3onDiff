@@ -43,6 +43,7 @@ In case you found new VM bugs using this fuzzer, __please__ make an issue and ad
 
 - [MODMUL operation returns wrong results for negative numbers](https://github.com/nspcc-dev/neo-go/issues/3598)
 - [MODPOW operation returns wrong results when base is negative](https://github.com/nspcc-dev/neo-go/issues/3612)
+- [PACKMAP operation keeps duplicate entries](https://github.com/nspcc-dev/neo-go/issues/3613)
 
 ## License
 
