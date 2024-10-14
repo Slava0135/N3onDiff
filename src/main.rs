@@ -29,6 +29,15 @@ struct Args {
     detect_status_diff: bool,
 
     #[arg(
+        short,
+        long,
+        help = "Read initial corpus from file",
+        name = "READ_CORPUS_FROM_FILE",
+        default_value_t = true
+    )]
+    read_corpus_from_file: bool,
+
+    #[arg(
         short = 'p',
         long,
         help = "Choose the broker TCP port",
@@ -116,6 +125,14 @@ fn main() {
                 opcodes: BASE64_STANDARD.decode("DAxIZWxsbyB3b3JsZCE=").unwrap(),
             }))
             .unwrap();
+
+        if args.read_corpus_from_file {
+            for line in std::fs::read_to_string("./corpus/corpus.txt").unwrap().lines() {
+                corpus.add(Testcase::new(ByteCodeInput {
+                    opcodes: BASE64_STANDARD.decode(line).unwrap(),
+                })).unwrap();
+            }
+        }
 
         let scheduler = QueueScheduler::new();
 
