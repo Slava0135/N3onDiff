@@ -20,7 +20,7 @@ use libafl_bolts::{
     tuples::{tuple_list, Handled},
 };
 use observer::GoCoverObserver;
-use rand::seq::{IteratorRandom, SliceRandom};
+use rand::seq::SliceRandom;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -94,10 +94,9 @@ fn main() {
     }
     corpus_from_file.shuffle(&mut rng);
     let testcases_chunks: Vec<Vec<_>> = corpus_from_file
-        .chunks(args.cores.ids.len())
+        .chunks(corpus_from_file.len() / args.cores.ids.len())
         .map(|x| x.to_vec())
         .collect();
-    let mut core_n = 0;
 
     let mut run_client = |_state: Option<_>, mut restarting_mgr, core_id: CoreId| {
         let neogo_stdout_observer = StdOutObserver::new("neogo-stdout-observer");
@@ -161,7 +160,7 @@ fn main() {
             .unwrap();
 
         if args.spread_corpus {
-            for tc in testcases_chunks[core_n].clone() {
+            for tc in testcases_chunks[core_id.0 % args.cores.ids.len()].clone() { // TODO: don't use coreId
                 corpus.add(tc).unwrap();
             }
         } else {
@@ -169,7 +168,6 @@ fn main() {
                 corpus.add(tc.clone()).unwrap();
             }
         }
-        core_n += 1;
 
         let scheduler = QueueScheduler::new();
 
