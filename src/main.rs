@@ -12,9 +12,15 @@ use feedback::{go_cover::GoCoverFeedback, type_state::TypeStateFeedback};
 use input::ByteCodeInput;
 use libafl::prelude::*;
 use libafl_bolts::{
-    core_affinity::Cores, current_nanos, prelude::CoreId, rands::StdRand, shmem::{ShMemProvider, StdShMemProvider}, tuples::{tuple_list, Handled}
+    core_affinity::Cores,
+    current_nanos,
+    prelude::CoreId,
+    rands::StdRand,
+    shmem::{ShMemProvider, StdShMemProvider},
+    tuples::{tuple_list, Handled},
 };
 use observer::GoCoverObserver;
+use rand::seq::IteratorRandom;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -26,7 +32,7 @@ struct Args {
         name = "DETECT_STATUS_DIFFERENCE",
         default_value_t = false
     )]
-    detect_status_diff: bool,
+    detect_status_diff: std::primitive::bool,
 
     #[arg(
         short,
@@ -35,7 +41,16 @@ struct Args {
         name = "READ_CORPUS_FROM_FILE",
         default_value_t = true
     )]
-    read_corpus_from_file: bool,
+    read_corpus_from_file: std::primitive::bool,
+
+    #[arg(
+        short,
+        long,
+        help = "Spread inputs from initial corpus between cores",
+        name = "SPREAD_CORPUS",
+        default_value_t = true
+    )]
+    spread_corpus: std::primitive::bool,
 
     #[arg(
         short = 'p',
@@ -50,13 +65,14 @@ struct Args {
         short,
         long,
         value_parser = Cores::from_cmdline,
-        help = "Spawn a client in each of the provided cores. Broker runs in the 0th core. 'all' to select all available cores. 'none' to run a client without binding to any core. eg: '1,2-4,6' selects the cores 1,2,3,4,6.",
+        help = "Spawn a client in each of the provided cores. Broker runs in the 0th core. 'all' to select all available cores. eg: '1,2-4,6' selects the cores 1,2,3,4,6.",
         name = "CORES"
     )]
     cores: Cores,
 }
 
 fn main() {
+    let mut rng = rand::thread_rng();
     let args = Args::parse();
 
     let shmem_provider = StdShMemProvider::new().expect("Failed to init shared memory");
@@ -64,6 +80,19 @@ fn main() {
 
     let temp_dir = env::temp_dir().join("N3onDiff");
     std::fs::create_dir(temp_dir.as_path()).unwrap_or(());
+
+    let mut corpus_from_file = Vec::new();
+    if args.read_corpus_from_file {
+        for line in std::fs::read_to_string("./corpus/corpus.txt")
+            .unwrap()
+            .lines()
+        {
+            corpus_from_file.push(Testcase::new(ByteCodeInput {
+                opcodes: BASE64_STANDARD.decode(line).unwrap(),
+            }));
+        }
+    }
+    let testcases_per_core = corpus_from_file.len() / args.cores.ids.len();
 
     let mut run_client = |_state: Option<_>, mut restarting_mgr, core_id: CoreId| {
         let neogo_stdout_observer = StdOutObserver::new("neogo-stdout-observer");
@@ -126,11 +155,16 @@ fn main() {
             }))
             .unwrap();
 
-        if args.read_corpus_from_file {
-            for line in std::fs::read_to_string("./corpus/corpus.txt").unwrap().lines() {
-                corpus.add(Testcase::new(ByteCodeInput {
-                    opcodes: BASE64_STANDARD.decode(line).unwrap(),
-                })).unwrap();
+        if args.spread_corpus {
+            for tc in corpus_from_file
+                .iter()
+                .choose_multiple(&mut rng, testcases_per_core)
+            {
+                corpus.add(tc.clone()).unwrap();
+            }
+        } else {
+            for tc in corpus_from_file.iter() {
+                corpus.add(tc.clone()).unwrap();
             }
         }
 
@@ -145,7 +179,7 @@ fn main() {
             match fuzzer.fuzz_loop(&mut stages, &mut executor, &mut state, &mut restarting_mgr) {
                 Ok(_) => break,
                 Err(Error::ShuttingDown) => break,
-                Err(err) => println!("{err:?}")
+                Err(err) => println!("{err:?}"),
             }
         }
         Ok(())
