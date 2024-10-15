@@ -141,7 +141,13 @@ fn main() {
 
         let mut fuzzer = StdFuzzer::new(scheduler, feedback, objective);
 
-        fuzzer.fuzz_loop(&mut stages, &mut executor, &mut state, &mut restarting_mgr)?;
+        loop {
+            match fuzzer.fuzz_loop(&mut stages, &mut executor, &mut state, &mut restarting_mgr) {
+                Ok(_) => break,
+                Err(Error::ShuttingDown) => break,
+                Err(err) => println!("{err:?}")
+            }
+        }
         Ok(())
     };
 
