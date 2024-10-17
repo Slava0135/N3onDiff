@@ -8,6 +8,12 @@ pub struct ByteCodeInput {
     pub opcodes: Vec<u8>,
 }
 
+impl ByteCodeInput {
+    pub fn as_standard_base64(&self) -> String {
+        BASE64_STANDARD.encode(&self.opcodes)
+    }
+}
+
 impl HasTargetBytes for ByteCodeInput {
     fn target_bytes(&self) -> libafl_bolts::prelude::OwnedSlice<u8> {
         BASE64_STANDARD
