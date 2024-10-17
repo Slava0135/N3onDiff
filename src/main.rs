@@ -34,7 +34,7 @@ struct Args {
     detect_status_diff: std::primitive::bool,
 
     #[arg(
-        short('c'),
+        short = 'c',
         long,
         help = "Report error if one of VMs crashes.",
         name = "DETECT_CRASH_DIFFERENCE",
@@ -43,7 +43,7 @@ struct Args {
     detect_crash_diff: std::primitive::bool,
 
     #[arg(
-        short('f'),
+        short = 'f',
         long,
         help = "Read initial corpus from file",
         name = "READ_CORPUS_FROM_FILE",
@@ -52,7 +52,7 @@ struct Args {
     read_corpus_from_file: std::primitive::bool,
 
     #[arg(
-        short,
+        short = 's',
         long,
         help = "Spread inputs from initial corpus between cores",
         name = "SPREAD_CORPUS",
@@ -70,7 +70,6 @@ struct Args {
     broker_port: u16,
 
     #[arg(
-        short,
         long,
         value_parser = Cores::from_cmdline,
         help = "Spawn a client in each of the provided cores. Broker runs in the 0th core. 'all' to select all available cores. eg: '1,2-4,6' selects the cores 1,2,3,4,6.",
