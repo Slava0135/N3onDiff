@@ -166,7 +166,6 @@ fn main() {
                     for tc in testcases_chunks[i].clone() {
                         corpus.add(tc).unwrap();
                     }
-                    println!("{i}");
                     break;
                 }
                 i += 1;
