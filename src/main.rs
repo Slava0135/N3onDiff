@@ -26,16 +26,24 @@ use rand::seq::SliceRandom;
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(
-        short,
         long,
-        help = "Report error if VMs exit with different status. Can result in many false positives!",
+        help = "Report error if VMs execution ends with different status. Can result in many false positives!",
         name = "DETECT_STATUS_DIFFERENCE",
         default_value_t = false
     )]
     detect_status_diff: std::primitive::bool,
 
     #[arg(
-        short,
+        short('c'),
+        long,
+        help = "Report error if one of VMs crashes.",
+        name = "DETECT_CRASH_DIFFERENCE",
+        default_value_t = true
+    )]
+    detect_crash_diff: std::primitive::bool,
+
+    #[arg(
+        short('f'),
         long,
         help = "Read initial corpus from file",
         name = "READ_CORPUS_FROM_FILE",
@@ -106,6 +114,7 @@ fn main() {
             neogo_stdout_observer.handle(),
             neosharp_stdout_observer.handle(),
             args.detect_status_diff,
+            args.detect_crash_diff,
         );
 
         let core_temp_dir = temp_dir.join(core_id.0.to_string());

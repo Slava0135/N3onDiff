@@ -19,6 +19,7 @@ pub struct DiffStdOutObjective {
     pub snd_stdout_observer: Handle<StdOutObserver>,
     diff_std_out_metadata: DiffStdOutMetadata,
     detect_status_diff: bool,
+    detect_crash_diff: bool,
 }
 
 impl DiffStdOutObjective {
@@ -26,12 +27,14 @@ impl DiffStdOutObjective {
         fst_stdout_observer: Handle<StdOutObserver>,
         snd_stdout_observer: Handle<StdOutObserver>,
         detect_status_diff: bool,
+        detect_crash_diff: bool,
     ) -> DiffStdOutObjective {
         DiffStdOutObjective {
             fst_stdout_observer: fst_stdout_observer,
             snd_stdout_observer: snd_stdout_observer,
             diff_std_out_metadata: DiffStdOutMetadata::default(),
             detect_status_diff: detect_status_diff,
+            detect_crash_diff: detect_crash_diff,
         }
     }
 }
@@ -78,7 +81,11 @@ where
             .expect("no output found (second)")
             .clone();
         match exit_kind {
-            ExitKind::Diff { primary, secondary } if self.detect_status_diff => {
+            ExitKind::Diff { primary, secondary }
+                if self.detect_crash_diff
+                    && (primary.to_owned() == DiffExitKind::Crash
+                        || secondary.to_owned() == DiffExitKind::Crash) =>
+            {
                 self.diff_std_out_metadata = DiffStdOutMetadata {
                     base64: Some(input.as_standard_base64()),
                     fst: parse(&fst_out),
