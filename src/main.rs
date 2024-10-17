@@ -168,15 +168,13 @@ fn main() {
             .unwrap();
 
         if args.spread_corpus {
-            let mut i = 0;
             for cid in 0..args.cores.ids.len() {
                 if args.cores.ids[cid] == core_id {
-                    for tc in testcases_chunks[i].clone() {
+                    for tc in testcases_chunks[cid].clone() {
                         corpus.add(tc).unwrap();
                     }
                     break;
                 }
-                i += 1;
             }
         } else {
             for tc in corpus_from_file.iter() {
