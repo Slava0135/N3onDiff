@@ -8,7 +8,10 @@ use libafl_bolts::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{input::ByteCodeInput, output::{parse, Output}};
+use crate::{
+    input::ByteCodeInput,
+    output::{parse, Output},
+};
 
 #[derive(Clone)]
 pub struct DiffStdOutObjective {
@@ -53,12 +56,29 @@ where
         _manager: &mut EM,
         input: &<S>::Input,
         observers: &OT,
-        _exit_kind: &ExitKind,
+        exit_kind: &ExitKind,
     ) -> Result<bool, Error>
     where
         EM: EventFirer<State = S>,
         OT: ObserversTuple<S>,
     {
+        match exit_kind {
+            ExitKind::Diff { primary, secondary } if self.detect_status_diff => {
+                self.diff_std_out_metadata = DiffStdOutMetadata {
+                    base64: Some(input.as_standard_base64()),
+                    fst: None,
+                    snd: None,
+                    cause: Some(
+                        String::from("different exit code: ")
+                            + &serde_json::to_string(primary).unwrap().replace("\"", "")
+                            + " / "
+                            + &serde_json::to_string(secondary).unwrap().replace("\"", ""),
+                    ),
+                };
+                return Ok(true);
+            }
+            _ => (),
+        }
         self.diff_std_out_metadata = DiffStdOutMetadata::default();
         let fst_out = observers
             .get(&self.fst_stdout_observer)
@@ -75,33 +95,34 @@ where
             .expect("no output found (second)")
             .clone();
         match (parse(&fst_out), parse(&snd_out)) {
-            (Some(fst_out), Some(snd_out)) => {
-                if fst_out.status != snd_out.status {
-                    self.diff_std_out_metadata = DiffStdOutMetadata {
-                        base64: Some(input.as_standard_base64()),
-                        fst: Some(fst_out),
-                        snd: Some(snd_out),
-                        cause: Some(String::from("different status")),
-                    };
-                    Ok(self.detect_status_diff)
-                } else {
-                    match fst_out.status.as_str() {
-                        "VM halted" => {
-                            if fst_out.estack != snd_out.estack {
-                                self.diff_std_out_metadata = DiffStdOutMetadata {
-                                    base64: Some(input.as_standard_base64()),
-                                    fst: Some(fst_out),
-                                    snd: Some(snd_out),
-                                    cause: Some(String::from("different stack")),
-                                };
-                                Ok(true)
-                            } else {
-                                Ok(false)
-                            }
+            (Some(fst_out), Some(snd_out)) if fst_out.status == snd_out.status => {
+                match fst_out.status.as_str() {
+                    "VM halted" => {
+                        if fst_out.estack != snd_out.estack {
+                            self.diff_std_out_metadata = DiffStdOutMetadata {
+                                base64: Some(input.as_standard_base64()),
+                                fst: Some(fst_out),
+                                snd: Some(snd_out),
+                                cause: Some(String::from("different stack")),
+                            };
+                            Ok(true)
+                        } else {
+                            Ok(false)
                         }
-                        _ => Ok(false),
                     }
+                    _ => Ok(false),
                 }
+            }
+            (Some(fst_out), Some(snd_out))
+                if fst_out.status != snd_out.status && self.detect_status_diff =>
+            {
+                self.diff_std_out_metadata = DiffStdOutMetadata {
+                    base64: Some(input.as_standard_base64()),
+                    fst: Some(fst_out),
+                    snd: Some(snd_out),
+                    cause: Some(String::from("different status")),
+                };
+                Ok(true)
             }
             (None, None) => Ok(false),
             _ => Ok(false),
