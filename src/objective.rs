@@ -62,23 +62,6 @@ where
         EM: EventFirer<State = S>,
         OT: ObserversTuple<S>,
     {
-        match exit_kind {
-            ExitKind::Diff { primary, secondary } if self.detect_status_diff => {
-                self.diff_std_out_metadata = DiffStdOutMetadata {
-                    base64: Some(input.as_standard_base64()),
-                    fst: None,
-                    snd: None,
-                    cause: Some(
-                        String::from("different exit code: ")
-                            + &serde_json::to_string(primary).unwrap().replace("\"", "")
-                            + " / "
-                            + &serde_json::to_string(secondary).unwrap().replace("\"", ""),
-                    ),
-                };
-                return Ok(true);
-            }
-            _ => (),
-        }
         self.diff_std_out_metadata = DiffStdOutMetadata::default();
         let fst_out = observers
             .get(&self.fst_stdout_observer)
@@ -94,6 +77,23 @@ where
             .as_ref()
             .expect("no output found (second)")
             .clone();
+        match exit_kind {
+            ExitKind::Diff { primary, secondary } if self.detect_status_diff => {
+                self.diff_std_out_metadata = DiffStdOutMetadata {
+                    base64: Some(input.as_standard_base64()),
+                    fst: parse(&fst_out),
+                    snd: parse(&snd_out),
+                    cause: Some(
+                        String::from("different exit code: ")
+                            + &serde_json::to_string(primary).unwrap().replace("\"", "")
+                            + " / "
+                            + &serde_json::to_string(secondary).unwrap().replace("\"", ""),
+                    ),
+                };
+                return Ok(true);
+            }
+            _ => (),
+        }
         match (parse(&fst_out), parse(&snd_out)) {
             (Some(fst_out), Some(snd_out)) if fst_out.status == snd_out.status => {
                 match fst_out.status.as_str() {
