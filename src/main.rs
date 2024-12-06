@@ -121,7 +121,12 @@ fn main() {
 
         let go_cover_dir = core_temp_dir.join("go-cover");
         std::fs::create_dir(go_cover_dir.as_path()).unwrap_or(());
-        let go_cover_observer = GoCoverObserver::new(go_cover_dir.clone().into_boxed_path());
+        let go_cover_merged_dir = core_temp_dir.join("go-cover-merged");
+        std::fs::create_dir(go_cover_merged_dir.as_path()).unwrap_or(());
+        let go_cover_observer = GoCoverObserver::new(
+            go_cover_dir.clone().into_boxed_path(),
+            go_cover_merged_dir.into_boxed_path(),
+        );
 
         let mut feedback = feedback_or!(
             TypeStateFeedback::new(vec![
@@ -210,7 +215,10 @@ fn main() {
         .launch()
     {
         Ok(()) => (),
-        Err(Error::ShuttingDown) => println!("Fuzzing stopped by user. Good bye."),
+        Err(Error::ShuttingDown) => {
+            println!("Fuzzing stopped by user. Good bye.");
+            println!("NOTE: coverage data for each client can be found in {} directory.", temp_dir.display());
+        },
         Err(err) => panic!("Failed to run launcher: {err:?}"),
     }
 }
