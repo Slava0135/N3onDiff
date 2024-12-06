@@ -86,6 +86,7 @@ fn main() {
     let monitor = MultiMonitor::new(|s| println!("{s}"));
 
     let temp_dir = env::temp_dir().join("N3onDiff");
+    std::fs::remove_dir_all(temp_dir.as_path()).unwrap_or(());
     std::fs::create_dir(temp_dir.as_path()).unwrap_or(());
 
     let mut corpus_from_file = Vec::new();
@@ -123,9 +124,12 @@ fn main() {
         std::fs::create_dir(go_cover_dir.as_path()).unwrap_or(());
         let go_cover_merged_dir = core_temp_dir.join("go-cover-merged");
         std::fs::create_dir(go_cover_merged_dir.as_path()).unwrap_or(());
+        let go_cover_tmp_dir = core_temp_dir.join("go-cover-tmp");
+        std::fs::create_dir(go_cover_tmp_dir.as_path()).unwrap_or(());
         let go_cover_observer = GoCoverObserver::new(
             go_cover_dir.clone().into_boxed_path(),
             go_cover_merged_dir.into_boxed_path(),
+            go_cover_tmp_dir.into_boxed_path(),
         );
 
         let mut feedback = feedback_or!(

@@ -87,7 +87,7 @@ run
 
 Coverage for each client/runner is collected under `/tmp/N3onDiff/0/go-cover-merged/`, `/tmp/N3onDiff/1/go-cover-merged/`, etc...
 
->__NOTE: backup coverage data from /tmp, because it will be lost after reboot__.
+>__NOTE: backup coverage data from /tmp BEFORE running fuzzing again OR reboot__.
 
 When fuzzing is finished, you would want to merge coverage directories from each client together.
 

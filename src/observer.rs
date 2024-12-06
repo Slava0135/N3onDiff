@@ -1,4 +1,10 @@
-use std::{borrow::Cow, collections::HashSet, fs::read_to_string, path::Path, process::Command};
+use std::{
+    borrow::Cow,
+    collections::HashSet,
+    fs::{self, read_to_string},
+    path::Path,
+    process::Command,
+};
 
 use libafl::{inputs::UsesInput, prelude::Observer};
 use libafl_bolts::Named;
@@ -9,17 +15,23 @@ pub struct GoCoverObserver {
     pub coverage: HashSet<String>,
     cover_dir: Box<Path>,
     cover_merged_dir: Box<Path>,
+    cover_tmp_dir: Box<Path>,
     profile_path: Box<Path>,
 }
 
 impl GoCoverObserver {
-    pub fn new(cover_dir: Box<Path>, cover_merged_dir: Box<Path>) -> GoCoverObserver {
+    pub fn new(
+        cover_dir: Box<Path>,
+        cover_merged_dir: Box<Path>,
+        cover_tmp_dir: Box<Path>,
+    ) -> GoCoverObserver {
         let mut profile_path = cover_dir.clone().to_path_buf();
         profile_path.push("profile.txt");
         GoCoverObserver {
             coverage: HashSet::new(),
             cover_dir,
             cover_merged_dir,
+            cover_tmp_dir,
             profile_path: profile_path.into_boxed_path(),
         }
     }
@@ -75,6 +87,10 @@ where
                 self.coverage.insert(String::from(location));
             }
         }
+        for entry in std::fs::read_dir(self.cover_tmp_dir.as_ref())? {
+            let entry = entry?;
+            std::fs::remove_file(entry.path())?;
+        }
         let mut cover_merge_cmd = Command::new("go");
         cover_merge_cmd
             .arg("tool")
@@ -86,8 +102,19 @@ where
                 self.cover_merged_dir.display()
             ))
             .arg("-o")
-            .arg(self.cover_merged_dir.as_ref());
+            .arg(self.cover_tmp_dir.as_ref());
         cover_merge_cmd.output()?;
+        for entry in std::fs::read_dir(self.cover_merged_dir.as_ref())? {
+            let entry = entry?;
+            std::fs::remove_file(entry.path())?;
+        }
+        for entry in std::fs::read_dir(self.cover_tmp_dir.as_ref())? {
+            let entry = entry?;
+            fs::copy(
+                entry.path(),
+                self.cover_merged_dir.as_ref().join(entry.file_name()),
+            )?;
+        }
         Ok(())
     }
 
